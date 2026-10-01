@@ -151,8 +151,8 @@ if(sessionStorage.getItem(SESSION_KEY)==='1'){
 var ALL_YEARS={};var YEARS=[];var DATA_READY=false,WANT_INIT=false;
 // ---- Provider colors (edit here; the sheet script's colors are ignored) ----
 var KEY_PROVIDERS=[['MILEKA','Mileka','#9A7400'],['KAITLYN','Kaitlyn','#1F5FA8'],['SABRINA','Sabrina','#1E7B45'],['ROVA','Rova','#6C3483'],['ADAMS','Adams','#B03A2E']];
-var MID_PROVIDERS=[['TED','#52BEA8'],['PROCTOR','#F0A030'],['BRYANT','#E8789F'],['LOMBARDI','#5DADE2'],['GRETCHEN','#A9B23E'],['MORRIS','#C49A6C'],['HAYES','#B08FD0'],['SCHENFELD','#8FA3B8']];
-var PALETTE=['#C9D6DF','#D6CFC7','#CBDCC5','#E5CFCF','#D5CDE3','#EADDB8','#C4DED8','#E3D2BF','#D9E3EC','#E6D7E6','#D2D8C2','#F0D9C8','#C8CCD8','#DCE6D6','#E8E2D0','#D4C4B7','#BFD1D9','#E2CCD8','#CFD9CF','#DED6CC'];
+var MID_PROVIDERS=[['PROCTOR','#F39C12'],['GRETCHEN','#C0D84A'],['TED','#22BEB6'],['BRYANT','#F48FB1'],['MORRIS','#8B5E3C'],['LOMBARDI','#D35FB7'],['HAYES','#A0A4A8'],['SCHENFELD','#C9B458']];
+var PALETTE=['#FFBEC9','#FFC4AA','#E5D09D','#BFDAA8','#98E0C7','#85E0EB','#9BD9FF','#CACEFF','#F4C3EC','#DAD7D2'];
 var NOT_PROVIDERS={DERM:1,XRAY:1,HOLD:1,END:1,HOME:1,APARTMENT:1,CLOSED:1,OTHER:1,COVERAGE:1};
 var ALIASES={HAAS:'SABRINA',PROC:'PROCTOR',SUGARMAN:'SUGERMAN',JEPPESON:'JEPPESEN'};
 var PCOLOR={};
@@ -175,15 +175,28 @@ function buildColors(){
     m.weeks.forEach(function(w){w.rows.forEach(function(r){r.cells.forEach(function(c){
       pNames(c.value).forEach(function(n){if(!months[n]){months[n]={};order.push(n);}months[n][mk]=1;});
     });});});});});
-  order.forEach(function(n){
-    if(PCOLOR[n])return;
-    var clash={};
-    Object.keys(PCOLOR).forEach(function(o){if(months[o]&&Object.keys(months[n]).some(function(mk){return months[o][mk];}))clash[PCOLOR[o]]=(clash[PCOLOR[o]]||0)+1;});
-    var best=PALETTE[0],bestN=1e9;
-    for(var i=0;i<PALETTE.length;i++){var c=clash[PALETTE[i]]||0;if(c<bestN){best=PALETTE[i];bestN=c;if(!c)break;}}
-    PCOLOR[n]=best;
-  });
+  var fixed={};Object.keys(PCOLOR).forEach(function(k){fixed[k]=1;});
+  var mates={};
+  order.forEach(function(n){mates[n]=order.filter(function(o){return o!==n&&Object.keys(months[n]).some(function(mk){return months[o][mk];});});});
+  function pick(n){var best=PALETTE[0],bestS=[-1,-1];
+    PALETTE.forEach(function(c){var m=1e9,sum=0;mates[n].forEach(function(o){if(PCOLOR[o]){var d=cdist(c,PCOLOR[o]);m=Math.min(m,d);sum+=Math.min(d,90);}});
+      if(m>bestS[0]||(m===bestS[0]&&sum>bestS[1])){bestS=[m,sum];best=c;}});
+    PCOLOR[n]=best;}
+  order.forEach(function(n){if(!fixed[n])pick(n);});
+  for(var pass=0;pass<4;pass++)order.forEach(function(n){if(!fixed[n])pick(n);});
 }
+// how different two colors look: mostly color family (hue), partly light vs dark
+function lch(h){var v=[1,3,5].map(function(i){var c=parseInt(h.substr(i,2),16)/255;return c>0.04045?Math.pow((c+0.055)/1.055,2.4):c/12.92;});
+  var x=(v[0]*0.4124+v[1]*0.3576+v[2]*0.1805)/0.95047,y=v[0]*0.2126+v[1]*0.7152+v[2]*0.0722,z=(v[0]*0.0193+v[1]*0.1192+v[2]*0.9505)/1.08883;
+  function f(t){return t>0.008856?Math.cbrt(t):7.787*t+16/116;}
+  var L=116*f(y)-16,A=500*(f(x)-f(y)),B=200*(f(y)-f(z));
+  return [L,Math.sqrt(A*A+B*B),(Math.atan2(B,A)*180/Math.PI+360)%360];}
+function cdist(a,b){var p=lch(a),q=lch(b);
+  if(p[1]<10&&q[1]<10)return Math.abs(p[0]-q[0]);
+  if(p[1]<10||q[1]<10)return 60;
+  var dh=Math.abs(p[2]-q[2]);dh=Math.min(dh,360-dh);
+  var hue=dh*Math.min(1,Math.min(p[1],q[1])/40),lt=0.8*(p[0]-q[0]);
+  return Math.sqrt(hue*hue+lt*lt);}
 function cellStyle(v){
   var cols=[];pNames(v).forEach(function(n){if(PCOLOR[n]&&cols.indexOf(PCOLOR[n])===-1)cols.push(PCOLOR[n]);});
   if(!cols.length)return null;
