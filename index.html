@@ -66,7 +66,7 @@ main{padding:1rem .75rem 4rem;max-width:1440px;margin:0 auto;}
 .tdl{text-align:left!important;font-weight:600;font-size:.64rem;color:#fff;line-height:1.3;white-space:nowrap;}
 .tdl.shift{background:var(--s);}.tdl.derm{background:var(--d);}.tdl.lodging{background:var(--l);}
 .cp{display:inline-block;width:100%;border-radius:4px;padding:.2rem .3rem;font-weight:600;font-size:.68rem;color:#1a1a2e;line-height:1.25;}
-.cc{background:#F1948A!important;color:#7B241C!important;font-weight:700;}
+.cc{background:#4B5563!important;color:#fff!important;font-weight:700;}
 @media(max-width:480px){.ls{display:none;}.lt{font-size:.9rem;}.yb{padding:.28rem .5rem;font-size:.68rem;}.thl{width:215px;min-width:215px;font-size:.58rem;}.thw,.thwe,.the{min-width:60px;}.cp{font-size:.62rem;padding:.15rem .25rem;}.st{font-size:.68rem;}}
 @media(min-width:481px) and (max-width:767px){.thl{width:215px;min-width:215px;}.thw,.thwe,.the{min-width:66px;}}</style>
 <style>@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}</style>
@@ -93,11 +93,7 @@ main{padding:1rem .75rem 4rem;max-width:1440px;margin:0 auto;}
 <main>
 <div class="leg">
 <div class="leg-ttl">Provider Color Key</div>
-<div class="li"><div class="sw" style="background:#AED6F1"></div>Kaitlyn</div>
-<div class="li"><div class="sw" style="background:#A9DFBF"></div>Haas</div>
-<div class="li"><div class="sw" style="background:#F9E79F"></div>Ashley</div>
-<div class="li"><div class="sw" style="background:#D2B4DE"></div>Rova</div>
-<div class="li"><div class="sw" style="background:#F1948A"></div>Adams</div>
+<div id="legKey" style="display:contents"></div>
 <div class="ld"></div>
 <div class="li"><span class="lp" style="background:#1E8449">Shift</span></div>
 <div class="li"><span class="lp" style="background:#7D3C98">Derm</span></div>
@@ -153,6 +149,52 @@ if(sessionStorage.getItem(SESSION_KEY)==='1'){
   document.getElementById('app').style.display='block';
 }
 var ALL_YEARS={};var YEARS=[];var DATA_READY=false,WANT_INIT=false;
+// ---- Provider colors (edit here; the sheet script's colors are ignored) ----
+var KEY_PROVIDERS=[['KAITLYN','Kaitlyn','#3B8EDB'],['HAAS','Haas','#3CC47C'],['MILEKA','Mileka','#F9E79F'],['ROVA','Rova','#A569BD'],['ADAMS','Adams','#E74C3C']];
+var PALETTE=['#F39C12','#1ABC9C','#283593','#E91E63','#8D6E63','#00BCD4','#827717','#F8BBD0','#CDDC39','#FFCC80','#00695C','#B0BEC5','#AD1457','#C5E1A5','#37474F','#80DEEA','#BF360C','#D7CCC8','#1565C0','#9FA8DA'];
+var NOT_PROVIDERS={DERM:1,XRAY:1,HOLD:1,END:1,HOME:1,APARTMENT:1,CLOSED:1,OTHER:1,COVERAGE:1};
+var ALIASES={SUGARMAN:'SUGERMAN',JEPPESON:'JEPPESEN'};
+var PCOLOR={};
+function baseName(s){
+  s=s.replace(/\(.*?\)/g,' ').replace(/\*/g,'').trim();
+  if(!s||/^\d/.test(s))return null;
+  var w=s.split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g,'');
+  if(w.length<2||NOT_PROVIDERS[w])return null;
+  return ALIASES[w]||w;
+}
+function pNames(v){
+  if(!v||v.charAt(0)==='(')return [];
+  return v.replace(/\bw\//gi,'/').split(/[\/|]/).map(baseName).filter(function(n){return n;});
+}
+function isLight(hex){var r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);return (r*299+g*587+b*114)/1000>=150;}
+function buildColors(){
+  PCOLOR={};KEY_PROVIDERS.forEach(function(k){PCOLOR[k[0]]=k[2];});
+  var order=[],months={};
+  YEARS.forEach(function(y){ALL_YEARS[y].forEach(function(m,mi){var mk=y+'|'+mi;
+    m.weeks.forEach(function(w){w.rows.forEach(function(r){r.cells.forEach(function(c){
+      pNames(c.value).forEach(function(n){if(!months[n]){months[n]={};order.push(n);}months[n][mk]=1;});
+    });});});});});
+  order.forEach(function(n){
+    if(PCOLOR[n])return;
+    var clash={};
+    Object.keys(PCOLOR).forEach(function(o){if(months[o]&&Object.keys(months[n]).some(function(mk){return months[o][mk];}))clash[PCOLOR[o]]=(clash[PCOLOR[o]]||0)+1;});
+    var best=PALETTE[0],bestN=1e9;
+    for(var i=0;i<PALETTE.length;i++){var c=clash[PALETTE[i]]||0;if(c<bestN){best=PALETTE[i];bestN=c;if(!c)break;}}
+    PCOLOR[n]=best;
+  });
+}
+function cellStyle(v){
+  var cols=[];pNames(v).forEach(function(n){if(PCOLOR[n]&&cols.indexOf(PCOLOR[n])===-1)cols.push(PCOLOR[n]);});
+  if(!cols.length)return null;
+  var light=cols.every(isLight);
+  var txt=light?'color:#1a1a2e;':'color:#fff;'+(cols.some(isLight)?'text-shadow:0 0 3px rgba(0,0,0,.7);':'');
+  if(cols.length===1)return 'background:'+cols[0]+';'+txt;
+  var stops=cols.map(function(c,i){return c+' '+(i*100/cols.length)+'% '+((i+1)*100/cols.length)+'%';}).join(',');
+  return 'background:linear-gradient(90deg,'+stops+');'+txt;
+}
+function renderLegend(){
+  document.getElementById('legKey').innerHTML=KEY_PROVIDERS.map(function(k){return '<div class="li"><div class="sw" style="background:'+k[2]+'"></div>'+k[1]+'</div>';}).join('');
+}
 function isW(h){return h&&(h.indexOf('Sat')!==-1||h.indexOf('Sun')!==-1);}
 function bWeek(week,wi){
   var h=week.headers;
@@ -169,8 +211,7 @@ function bWeek(week,wi){
     for(var ci=0;ci<h.length;ci++){var cell=row.cells[ci]||{value:'',color:null};
       if(!cell.value)t+='<td></td>';
       else if(cell.value.toLowerCase()==='closed')t+='<td><span class="cp cc">Closed</span></td>';
-      else if(cell.color)t+='<td><span class="cp" style="background:'+cell.color+'">'+cell.value+'</span></td>';
-      else t+='<td>'+cell.value+'</td>';
+      else{var cs=cellStyle(cell.value);t+=cs?'<td><span class="cp" style="'+cs+'">'+cell.value+'</span></td>':'<td>'+cell.value+'</td>';}
     }t+='</tr>';
   }
   t+='</tbody></table></div></div>';return t;
@@ -202,6 +243,7 @@ function gToday(){
 }
 function init(){
   if(!DATA_READY){WANT_INIT=true;return;}
+  buildColors();renderLegend();
   document.getElementById('yTog').innerHTML=YEARS.map(function(y){return '<button class="yb" data-year="'+y+'" onclick="rYear(\'' +y+ '\')">'+y+'</button>';}).join('');
   rYear('2026');
 }
