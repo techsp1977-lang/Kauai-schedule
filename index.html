@@ -150,10 +150,10 @@ if(sessionStorage.getItem(SESSION_KEY)==='1'){
 }
 var ALL_YEARS={};var YEARS=[];var DATA_READY=false,WANT_INIT=false;
 // ---- Provider colors (edit here; the sheet script's colors are ignored) ----
-var KEY_PROVIDERS=[['KAITLYN','Kaitlyn','#3B8EDB'],['HAAS','Haas','#3CC47C'],['MILEKA','Mileka','#F9E79F'],['ROVA','Rova','#A569BD'],['ADAMS','Adams','#E74C3C']];
-var PALETTE=['#F39C12','#1ABC9C','#283593','#E91E63','#8D6E63','#00BCD4','#827717','#F8BBD0','#CDDC39','#FFCC80','#00695C','#B0BEC5','#AD1457','#C5E1A5','#37474F','#80DEEA','#BF360C','#D7CCC8','#1565C0','#9FA8DA'];
+var KEY_PROVIDERS=[['MILEKA','Mileka','#9A7400'],['KAITLYN','Kaitlyn','#1F5FA8'],['SABRINA','Sabrina','#1E7B45'],['ROVA','Rova','#6C3483'],['ADAMS','Adams','#B03A2E']];
+var PALETTE=['#C9D6DF','#D6CFC7','#CBDCC5','#E5CFCF','#D5CDE3','#EADDB8','#C4DED8','#E3D2BF','#D9E3EC','#E6D7E6','#D2D8C2','#F0D9C8','#C8CCD8','#DCE6D6','#E8E2D0','#D4C4B7','#BFD1D9','#E2CCD8','#CFD9CF','#DED6CC'];
 var NOT_PROVIDERS={DERM:1,XRAY:1,HOLD:1,END:1,HOME:1,APARTMENT:1,CLOSED:1,OTHER:1,COVERAGE:1};
-var ALIASES={SUGARMAN:'SUGERMAN',JEPPESON:'JEPPESEN'};
+var ALIASES={HAAS:'SABRINA',PROC:'PROCTOR',SUGARMAN:'SUGERMAN',JEPPESON:'JEPPESEN'};
 var PCOLOR={};
 function baseName(s){
   s=s.replace(/\(.*?\)/g,' ').replace(/\*/g,'').trim();
