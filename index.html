@@ -66,7 +66,7 @@ main{padding:1rem .75rem 4rem;max-width:1440px;margin:0 auto;}
 .tdl{text-align:left!important;font-weight:600;font-size:.64rem;color:#fff;line-height:1.3;white-space:nowrap;}
 .tdl.shift{background:var(--s);}.tdl.derm{background:var(--d);}.tdl.lodging{background:var(--l);}
 .cp{display:inline-block;width:100%;border-radius:4px;padding:.2rem .3rem;font-weight:600;font-size:.68rem;color:#1a1a2e;line-height:1.25;}
-.cc{background:#4B5563!important;color:#fff!important;font-weight:700;}
+.cc{background:#EEF0F2!important;color:#B91C1C!important;font-weight:700;}
 @media(max-width:480px){.ls{display:none;}.lt{font-size:.9rem;}.yb{padding:.28rem .5rem;font-size:.68rem;}.thl{width:215px;min-width:215px;font-size:.58rem;}.thw,.thwe,.the{min-width:60px;}.cp{font-size:.62rem;padding:.15rem .25rem;}.st{font-size:.68rem;}}
 @media(min-width:481px) and (max-width:767px){.thl{width:215px;min-width:215px;}.thw,.thwe,.the{min-width:66px;}}</style>
 <style>@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}</style>
@@ -150,8 +150,9 @@ if(sessionStorage.getItem(SESSION_KEY)==='1'){
 }
 var ALL_YEARS={};var YEARS=[];var DATA_READY=false,WANT_INIT=false;
 // ---- Provider colors (edit here; the sheet script's colors are ignored) ----
-var KEY_PROVIDERS=[['MILEKA','Mileka','#9A7400'],['KAITLYN','Kaitlyn','#1F5FA8'],['SABRINA','Sabrina','#1E7B45'],['ROVA','Rova','#6C3483'],['ADAMS','Adams','#B03A2E']];
-var MID_PROVIDERS=[['PROCTOR','#F39C12'],['GRETCHEN','#C0D84A'],['TED','#22BEB6'],['BRYANT','#F48FB1'],['MORRIS','#8B5E3C'],['LOMBARDI','#D35FB7'],['HAYES','#A0A4A8'],['SCHENFELD','#C9B458']];
+var KEY_PROVIDERS=[['MILEKA','Mileka','#9A7400'],['KAITLYN','Kaitlyn','#1F5FA8'],['SABRINA','Sabrina','#2F3E46'],['ROVA','Rova','#6C3483'],['ADAMS','Adams','#B03A2E']];
+var MID_PROVIDERS=[['PROCTOR','#F39C12'],['GRETCHEN','#C0D84A'],['TED','#22BEB6'],['HAYES','#A0A4A8'],['SCHENFELD','#C9B458']];
+var LIGHT_PROVIDERS=[['GREG','#FCD3BC'],['MORRIS','#CFE6C2'],['LOMBARDI','#EBC3EC'],['BRYANT','#F9C4D2']];
 var PALETTE=['#FFBEC9','#FFC4AA','#E5D09D','#BFDAA8','#98E0C7','#85E0EB','#9BD9FF','#CACEFF','#F4C3EC','#DAD7D2'];
 var NOT_PROVIDERS={DERM:1,XRAY:1,HOLD:1,END:1,HOME:1,APARTMENT:1,CLOSED:1,OTHER:1,COVERAGE:1};
 var ALIASES={HAAS:'SABRINA',PROC:'PROCTOR',SUGARMAN:'SUGERMAN',JEPPESON:'JEPPESEN'};
@@ -169,7 +170,7 @@ function pNames(v){
 }
 function isLight(hex){var r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);return (r*299+g*587+b*114)/1000>=150;}
 function buildColors(){
-  PCOLOR={};KEY_PROVIDERS.forEach(function(k){PCOLOR[k[0]]=k[2];});MID_PROVIDERS.forEach(function(k){PCOLOR[k[0]]=k[1];});
+  PCOLOR={};KEY_PROVIDERS.forEach(function(k){PCOLOR[k[0]]=k[2];});MID_PROVIDERS.concat(LIGHT_PROVIDERS).forEach(function(k){PCOLOR[k[0]]=k[1];});
   var order=[],months={};
   YEARS.forEach(function(y){ALL_YEARS[y].forEach(function(m,mi){var mk=y+'|'+mi;
     m.weeks.forEach(function(w){w.rows.forEach(function(r){r.cells.forEach(function(c){
@@ -177,10 +178,11 @@ function buildColors(){
     });});});});});
   var fixed={};Object.keys(PCOLOR).forEach(function(k){fixed[k]=1;});
   var mates={};
-  order.forEach(function(n){mates[n]=order.filter(function(o){return o!==n&&Object.keys(months[n]).some(function(mk){return months[o][mk];});});});
-  function pick(n){var best=PALETTE[0],bestS=[-1,-1];
-    PALETTE.forEach(function(c){var m=1e9,sum=0;mates[n].forEach(function(o){if(PCOLOR[o]){var d=cdist(c,PCOLOR[o]);m=Math.min(m,d);sum+=Math.min(d,90);}});
-      if(m>bestS[0]||(m===bestS[0]&&sum>bestS[1])){bestS=[m,sum];best=c;}});
+  order.forEach(function(n){mates[n]=[];order.forEach(function(o){if(o===n)return;var k=0;Object.keys(months[n]).forEach(function(mk){if(months[o][mk])k++;});if(k)mates[n].push([o,k]);});});
+  // pick the muted color that clashes least, weighting people by how many months they share
+  function pick(n){var best=PALETTE[0],bestP=1e18;
+    PALETTE.forEach(function(c){var pen=0;mates[n].forEach(function(m){var col=PCOLOR[m[0]];if(col){var d=cdist(c,col);if(d<45)pen+=m[1]*(45-d)*(45-d)*(d<20?20:1);}});
+      if(pen<bestP){bestP=pen;best=c;}});
     PCOLOR[n]=best;}
   order.forEach(function(n){if(!fixed[n])pick(n);});
   for(var pass=0;pass<4;pass++)order.forEach(function(n){if(!fixed[n])pick(n);});
