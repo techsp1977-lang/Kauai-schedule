@@ -151,6 +151,7 @@ if(sessionStorage.getItem(SESSION_KEY)==='1'){
 var ALL_YEARS={};var YEARS=[];var DATA_READY=false,WANT_INIT=false;
 // ---- Provider colors (edit here; the sheet script's colors are ignored) ----
 var KEY_PROVIDERS=[['MILEKA','Mileka','#9A7400'],['KAITLYN','Kaitlyn','#1F5FA8'],['SABRINA','Sabrina','#1E7B45'],['ROVA','Rova','#6C3483'],['ADAMS','Adams','#B03A2E']];
+var MID_PROVIDERS=[['TED','#52BEA8'],['PROCTOR','#F0A030'],['BRYANT','#E8789F'],['LOMBARDI','#5DADE2'],['GRETCHEN','#A9B23E'],['MORRIS','#C49A6C'],['HAYES','#B08FD0'],['SCHENFELD','#8FA3B8']];
 var PALETTE=['#C9D6DF','#D6CFC7','#CBDCC5','#E5CFCF','#D5CDE3','#EADDB8','#C4DED8','#E3D2BF','#D9E3EC','#E6D7E6','#D2D8C2','#F0D9C8','#C8CCD8','#DCE6D6','#E8E2D0','#D4C4B7','#BFD1D9','#E2CCD8','#CFD9CF','#DED6CC'];
 var NOT_PROVIDERS={DERM:1,XRAY:1,HOLD:1,END:1,HOME:1,APARTMENT:1,CLOSED:1,OTHER:1,COVERAGE:1};
 var ALIASES={HAAS:'SABRINA',PROC:'PROCTOR',SUGARMAN:'SUGERMAN',JEPPESON:'JEPPESEN'};
@@ -168,7 +169,7 @@ function pNames(v){
 }
 function isLight(hex){var r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);return (r*299+g*587+b*114)/1000>=150;}
 function buildColors(){
-  PCOLOR={};KEY_PROVIDERS.forEach(function(k){PCOLOR[k[0]]=k[2];});
+  PCOLOR={};KEY_PROVIDERS.forEach(function(k){PCOLOR[k[0]]=k[2];});MID_PROVIDERS.forEach(function(k){PCOLOR[k[0]]=k[1];});
   var order=[],months={};
   YEARS.forEach(function(y){ALL_YEARS[y].forEach(function(m,mi){var mk=y+'|'+mi;
     m.weeks.forEach(function(w){w.rows.forEach(function(r){r.cells.forEach(function(c){
