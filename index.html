@@ -324,7 +324,7 @@ function init(){
   gToday();
 }
 fetch('schedule.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
-  var yrs=d.years||d;ALL_YEARS=yrs;if(d.lastUpdated)document.getElementById('lastUpd').textContent=d.lastUpdated+' HST';YEARS=Object.keys(ALL_YEARS).sort();DATA_READY=true;
+  var yrs=d.years||d;Object.keys(yrs).forEach(function(y){yrs[y]=yrs[y].filter(function(m){return MONTHS.indexOf(mName(m.name))>=0;}).sort(function(a,b){return MONTHS.indexOf(mName(a.name))-MONTHS.indexOf(mName(b.name));});});ALL_YEARS=yrs;if(d.lastUpdated)document.getElementById('lastUpd').textContent=d.lastUpdated+' HST';YEARS=Object.keys(ALL_YEARS).sort();DATA_READY=true;
   if(WANT_INIT||sessionStorage.getItem(SESSION_KEY)==='1')init();
 }).catch(function(e){document.getElementById('cal').innerHTML='<p style="padding:16px 0;color:var(--label2)">The schedule didn’t load. Check your connection, then refresh the page.</p>';});
 </script>
