@@ -22,19 +22,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--sand);color:var(--ink);}
 .login-error.show{display:block;}
 .login-footer{font-size:.7rem;color:var(--muted);margin-top:1.5rem;}
 #app{display:none;}
-header{background:var(--navy);padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.topbar{position:sticky;top:0;z-index:200;}
+header{background:var(--navy);padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 12px rgba(0,0,0,.3);gap:.5rem;}
 .hl{display:flex;align-items:center;gap:.6rem;}
 .lm{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,#7EC8E3,#2E86C1);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;color:#fff;font-size:.95rem;flex-shrink:0;}
 .lt{font-family:'DM Serif Display',serif;color:#fff;font-size:1rem;line-height:1.2;}
 .ls{display:block;font-size:.6rem;font-weight:400;color:#93C5D6;letter-spacing:.08em;text-transform:uppercase;}
-.hr{display:flex;align-items:center;gap:.5rem;}
+.hr{display:flex;align-items:center;gap:.5rem;}.hb{display:flex;gap:.5rem;}
 .btn-t{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:.32rem .7rem;border-radius:5px;font-size:.74rem;font-weight:600;cursor:pointer;}
 .btn-lo{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);padding:.32rem .7rem;border-radius:5px;font-size:.74rem;font-weight:600;cursor:pointer;}
 .btn-lo:hover{background:rgba(255,255,255,.15);color:#fff;}
 .yt{display:flex;background:rgba(255,255,255,.1);border-radius:7px;border:1px solid rgba(255,255,255,.2);overflow:hidden;}
 .yb{padding:.3rem .6rem;font-size:.74rem;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;border:none;background:none;}
 .yb.active{background:var(--ocean);color:#fff;}
-.mn{background:var(--white);border-bottom:2px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:56px;z-index:100;}
+.mn{background:var(--white);border-bottom:2px solid var(--border);overflow-x:auto;scrollbar-width:none;}
 .mn::-webkit-scrollbar{display:none;}
 .mt{display:flex;padding:0 .75rem;width:max-content;min-width:100%;}
 .tab{padding:.6rem .85rem;font-size:.72rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;text-transform:uppercase;letter-spacing:.05em;margin-bottom:-2px;}
@@ -57,6 +58,7 @@ main{padding:1rem .75rem 4rem;max-width:1440px;margin:0 auto;}
 .st{width:100%;border-collapse:collapse;font-size:.75rem;}
 .dhr th{padding:.4rem .4rem;text-align:center;font-weight:600;font-size:.68rem;letter-spacing:.03em;border-right:1px solid rgba(255,255,255,.3);}
 .dhr th:last-child{border-right:none;}
+.thl,.tdl{position:sticky;left:0;z-index:2;}
 .thl{background:var(--s);color:#fff;text-align:left!important;font-size:.64rem;white-space:nowrap;width:240px;min-width:240px;}
 .thw{background:var(--ocean-lt);color:var(--navy);min-width:72px;}
 .thwe{background:#AED6F1;color:var(--navy);min-width:72px;}
@@ -67,8 +69,26 @@ main{padding:1rem .75rem 4rem;max-width:1440px;margin:0 auto;}
 .tdl.shift{background:var(--s);}.tdl.derm{background:var(--d);}.tdl.lodging{background:var(--l);}
 .cp{display:inline-block;width:100%;border-radius:4px;padding:.2rem .3rem;font-weight:600;font-size:.68rem;color:#1a1a2e;line-height:1.25;}
 .cc{background:#EEF0F2!important;color:#B91C1C!important;font-weight:700;}
-@media(max-width:480px){.ls{display:none;}.lt{font-size:.9rem;}.yb{padding:.28rem .5rem;font-size:.68rem;}.thl{width:215px;min-width:215px;font-size:.58rem;}.thw,.thwe,.the{min-width:60px;}.cp{font-size:.62rem;padding:.15rem .25rem;}.st{font-size:.68rem;}}
-@media(min-width:481px) and (max-width:767px){.thl{width:215px;min-width:215px;}.thw,.thwe,.the{min-width:66px;}}</style>
+@media(max-width:767px){
+header{height:auto;flex-wrap:wrap;padding:.5rem .75rem;row-gap:.45rem;}
+.hl{flex:1;min-width:0;}.lt{font-size:1rem;white-space:nowrap;}
+.hr{display:contents;}
+.yt{order:3;width:100%;overflow-x:auto;scrollbar-width:none;}.yt::-webkit-scrollbar{display:none;}
+.yb{flex:1;padding:.45rem .3rem;font-size:.78rem;}
+.btn-t,.btn-lo{padding:.45rem .7rem;font-size:.78rem;}
+.tab{padding:.75rem .85rem;}
+main{padding:.75rem .5rem 4rem;}
+.mtitle{font-size:1.3rem;}
+.leg{padding:.6rem .7rem;}.li{font-size:.75rem;}
+.emp{display:none;}
+.thl{width:122px;min-width:122px;max-width:122px;font-size:.62rem;}
+.tdl{white-space:normal;max-width:122px;font-size:.62rem;line-height:1.25;padding:.35rem .45rem!important;box-shadow:2px 0 4px rgba(0,0,0,.12);}
+.thl{box-shadow:2px 0 4px rgba(0,0,0,.12);}
+.thw,.thwe,.the{min-width:68px;}
+.dr td{padding:.3rem .25rem;}
+.cp{font-size:.66rem;padding:.25rem .2rem;}
+}
+@media(max-width:380px){.ls{display:none;}.lt{font-size:.92rem;}.thl,.tdl{width:108px;min-width:108px;max-width:108px;}.thw,.thwe,.the{min-width:62px;}.cp{font-size:.62rem;}}</style>
 <style>@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}</style>
 </head><body>
 <div id="login-screen">
@@ -85,11 +105,11 @@ main{padding:1rem .75rem 4rem;max-width:1440px;margin:0 auto;}
 <div class="login-footer">Kauai Urgent Care &bull; Staff Access Only</div>
 </div></div>
 <div id="app">
-<header>
+<div class="topbar"><header>
 <div class="hl"><div class="lm">K</div><div class="lt">Kauai Urgent Care<span class="ls">Provider Schedule</span></div></div>
-<div class="hr"><div class="yt" id="yTog"></div><button class="btn-t" onclick="gToday()">Today</button><button class="btn-lo" onclick="doLogout()">Sign Out</button></div>
+<div class="hr"><div class="yt" id="yTog"></div><div class="hb"><button class="btn-t" onclick="gToday()">Today</button><button class="btn-lo" onclick="doLogout()">Sign Out</button></div></div>
 </header>
-<nav class="mn"><div class="mt" id="mTabs"></div></nav>
+<nav class="mn"><div class="mt" id="mTabs"></div></nav></div>
 <main>
 <div class="leg">
 <div class="leg-ttl">Provider Color Key</div>
@@ -220,12 +240,13 @@ function bWeek(week,wi){
   t+='<span class="wl">'+lbl+'</span>';
   t+='<div class="tw"><table class="st"><thead><tr class="dhr">';
   t+='<th class="thl">Shifts</th>';
-  for(var i=0;i<h.length;i++){var hdr=h[i];if(!hdr)t+='<th class="the"></th>';else if(isW(hdr))t+='<th class="thwe">'+hdr+'</th>';else t+='<th class="thw">'+hdr+'</th>';}
+  for(var i=0;i<h.length;i++){var hdr=h[i];if(!hdr)t+='<th class="the emp"></th>';else if(isW(hdr))t+='<th class="thwe">'+hdr+'</th>';else t+='<th class="thw">'+hdr+'</th>';}
   t+='</tr></thead><tbody>';
   for(var ri=0;ri<week.rows.length;ri++){var row=week.rows[ri];
     t+='<tr class="dr"><td class="tdl '+row.type+'">'+row.label+'</td>';
     for(var ci=0;ci<h.length;ci++){var cell=row.cells[ci]||{value:'',color:null};
-      if(!cell.value)t+='<td></td>';
+      if(!h[ci]&&!cell.value)t+='<td class="emp"></td>';
+      else if(!cell.value)t+='<td></td>';
       else if(cell.value.toLowerCase()==='closed')t+='<td><span class="cp cc">Closed</span></td>';
       else{var cs=cellStyle(cell.value);t+=cs?'<td><span class="cp" style="'+cs+'">'+cell.value+'</span></td>':'<td>'+cell.value+'</td>';}
     }t+='</tr>';
