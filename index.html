@@ -283,7 +283,7 @@ async function fidTurnOn(){
     lsSet(FID_KEY,JSON.stringify({id:b64u(cred.rawId),pw:PWD_HASH}));lsDel(FID_SKIP);
     enterApp();
   }catch(e){
-    err.textContent=fidName()+' wasn’t turned on. You can try again or choose Not Now.';
+    err.textContent=fidName()+' wasn’t turned on ('+(e&&e.name||'error')+'). You can try again or choose Not Now.';
     err.classList.add('show');
   }
 }
@@ -301,7 +301,7 @@ async function fidSignIn(auto){
     }});
     enterApp();
   }catch(e){
-    if(!auto){var err=document.getElementById('login-error');err.textContent=fidName()+' didn’t work. Use the password instead.';err.classList.add('show');setTimeout(function(){err.classList.remove('show');err.textContent='That password didn’t match. Try again.';},3500);}
+    if(!auto){var err=document.getElementById('login-error');err.textContent=fidName()+' didn’t work ('+(e&&e.name||'error')+'). Use the password instead.';err.classList.add('show');setTimeout(function(){err.classList.remove('show');err.textContent='That password didn’t match. Try again.';},3500);}
   }finally{fidBusy=false;}
 }
 function fidRefresh(){
