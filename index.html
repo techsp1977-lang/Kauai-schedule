@@ -46,6 +46,14 @@ button{font-family:inherit;color:inherit;}
 .login-error{color:var(--red);font-size:13px;margin-top:12px;display:none;}
 .login-error.show{display:block;}
 .login-footer{font-size:12px;color:var(--label2);margin-top:20px;}
+.fid-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;}
+.fid-btn svg{width:22px;height:22px;flex:none;}
+.login-or{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--label2);margin:0 0 14px;}
+.login-or::before,.login-or::after{content:"";flex:1;height:.5px;background:var(--sep);}
+.login-btn2{width:100%;height:50px;background:var(--fill);color:var(--label);border:none;border-radius:12px;font-size:17px;font-weight:600;cursor:pointer;margin-top:10px;}
+.login-link{background:none;border:none;color:var(--tint-text);font-size:13px;margin-top:14px;cursor:pointer;min-height:44px;padding:0 8px;}
+.fid-icon{width:56px;height:56px;margin:0 auto 16px;color:var(--tint);}
+[hidden]{display:none!important;}
 
 /* ---- top bar: glass, because the schedule scrolls under it ---- */
 #app{display:none;}
@@ -134,13 +142,28 @@ header{flex-wrap:wrap;row-gap:8px;}
 <div class="login-logo">K</div>
 <div class="login-title">Kauai Urgent Care</div>
 <div class="login-sub">Provider Schedule</div>
+<div id="login-form">
+<div id="fid-signin" hidden>
+<button class="login-btn fid-btn" id="fid-btn" type="button" onclick="fidSignIn()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/></svg><span id="fid-label">Sign in with Face ID</span></button>
+<div class="login-or">or use the password</div>
+</div>
 <div class="login-input-wrap">
 <input class="login-input" id="pwd-input" type="password" placeholder="Enter password" autocomplete="current-password">
 <button class="toggle-pw" id="toggle-pw-btn" onclick="togglePw()" type="button" aria-label="Show password">Show</button>
 </div>
-<button class="login-btn" type="button" onclick="doLogin()">Sign In</button>
+<button class="login-btn" id="pwd-btn" type="button" onclick="doLogin()">Sign In</button>
 <div class="login-error" id="login-error" role="alert">That password didn’t match. Try again.</div>
+<button class="login-link" id="fid-off" type="button" onclick="fidTurnOff()" hidden>Turn off Face ID on this device</button>
 <div class="login-footer">For Kauai Urgent Care staff</div>
+</div>
+<div id="fid-offer" hidden>
+<svg class="fid-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M9 9v1.5M15 9v1.5M12 9v4h-1M9.5 16a4 4 0 0 0 5 0"/></svg>
+<div class="login-title" id="fid-offer-title">Use Face ID next time?</div>
+<div class="login-sub">Open the schedule on this device with a glance instead of typing the password. The password still works too.</div>
+<button class="login-btn" type="button" id="fid-on-btn" onclick="fidTurnOn()">Turn On Face ID</button>
+<button class="login-btn2" type="button" onclick="fidNotNow()">Not Now</button>
+<div class="login-error" id="fid-error" role="alert"></div>
+</div>
 </div></div>
 <div id="app">
 <div class="topbar"><header>
@@ -172,9 +195,8 @@ async function doLogin(){
   var hash=await hashPwd(input);
   if(hash===PWD_HASH){
     sessionStorage.setItem(SESSION_KEY,'1');
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    init();
+    if(await fidShouldOffer()){showFidOffer();return;}
+    enterApp();
   } else {
     var err=document.getElementById('login-error');
     err.classList.add('show');
@@ -195,12 +217,105 @@ function togglePw(){
   if(inp.type==='password'){inp.type='text';btn.textContent='Hide';btn.setAttribute('aria-label','Hide password');}
   else{inp.type='password';btn.textContent='Show';btn.setAttribute('aria-label','Show password');}
 }
+function enterApp(){
+  sessionStorage.setItem(SESSION_KEY,'1');
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  init();
+}
 function doLogout(){
   sessionStorage.removeItem(SESSION_KEY);
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('pwd-input').value='';
+  fidRefresh();
 }
+
+/* ---------- Face ID / Touch ID (a passkey kept on this device) ----------
+   After a password sign-in, the page offers to create a passkey on this device.
+   Later sign-ins ask the device to confirm it (Face ID, Touch ID or passcode).
+   It only unlocks this page on this device; the password always still works.
+   Changing PWD_HASH turns every saved Face ID off, so a new password is needed once. */
+var FID_KEY='kuc_fid', FID_SKIP='kuc_fid_skip';
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+function b64u(buf){return btoa(String.fromCharCode.apply(null,new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+function rand(n){var a=new Uint8Array(n);crypto.getRandomValues(a);return a;}
+function fidName(){
+  var ua=navigator.userAgent;
+  if(/iPhone|iPad|iPod/.test(ua))return 'Face ID';
+  if(/Macintosh/.test(ua))return 'Touch ID';
+  return 'this device’s lock';
+}
+function fidSaved(){
+  try{var s=JSON.parse(lsGet(FID_KEY)||'null');return s&&s.pw===PWD_HASH&&s.id?s:null}catch(e){return null}
+}
+async function fidAvailable(){
+  try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch(e){return false}
+}
+async function fidShouldOffer(){
+  if(fidSaved())return false;
+  var skip=parseInt(lsGet(FID_SKIP)||'0',10);
+  if(skip&&Date.now()-skip<14*864e5)return false;
+  return await fidAvailable();
+}
+function showFidOffer(){
+  var n=fidName();
+  document.getElementById('fid-offer-title').textContent='Use '+n+' next time?';
+  document.getElementById('fid-on-btn').textContent='Turn On '+n;
+  document.getElementById('fid-error').classList.remove('show');
+  document.getElementById('login-form').hidden=true;
+  document.getElementById('fid-offer').hidden=false;
+}
+async function fidTurnOn(){
+  var err=document.getElementById('fid-error');
+  try{
+    var cred=await navigator.credentials.create({publicKey:{
+      challenge:rand(32),
+      rp:{name:'Kauai Urgent Care Schedule',id:location.hostname},
+      user:{id:rand(16),name:'Kauai schedule',displayName:'Kauai Urgent Care Schedule'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000
+    }});
+    lsSet(FID_KEY,JSON.stringify({id:b64u(cred.rawId),pw:PWD_HASH}));lsDel(FID_SKIP);
+    enterApp();
+  }catch(e){
+    err.textContent=fidName()+' wasn’t turned on. You can try again or choose Not Now.';
+    err.classList.add('show');
+  }
+}
+function fidNotNow(){lsSet(FID_SKIP,String(Date.now()));enterApp();}
+function fidTurnOff(){lsDel(FID_KEY);fidRefresh();}
+var fidBusy=false;
+async function fidSignIn(auto){
+  var s=fidSaved();if(!s||fidBusy)return;
+  fidBusy=true;
+  try{
+    await navigator.credentials.get({publicKey:{
+      challenge:rand(32),rpId:location.hostname,
+      allowCredentials:[{type:'public-key',id:unb64u(s.id),transports:['internal','hybrid']}],
+      userVerification:'required',timeout:60000
+    }});
+    enterApp();
+  }catch(e){
+    if(!auto){var err=document.getElementById('login-error');err.textContent=fidName()+' didn’t work. Use the password instead.';err.classList.add('show');setTimeout(function(){err.classList.remove('show');err.textContent='That password didn’t match. Try again.';},3500);}
+  }finally{fidBusy=false;}
+}
+function fidRefresh(){
+  var s=fidSaved();
+  document.getElementById('fid-signin').hidden=!s;
+  document.getElementById('fid-off').hidden=!s;
+  document.getElementById('fid-off').textContent='Turn off '+fidName()+' on this device';
+  document.getElementById('fid-label').textContent='Sign in with '+fidName();
+  var pb=document.getElementById('pwd-btn');pb.className=s?'login-btn2':'login-btn';pb.style.marginTop=s?'0':'';
+  document.getElementById('fid-offer').hidden=true;
+  document.getElementById('login-form').hidden=false;
+}
+fidRefresh();
+if(fidSaved()&&sessionStorage.getItem(SESSION_KEY)!=='1')fidSignIn(true);
 document.getElementById('pwd-input').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 if(sessionStorage.getItem(SESSION_KEY)==='1'){
   document.getElementById('login-screen').style.display='none';
